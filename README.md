@@ -66,6 +66,60 @@
 
 </details>
 
+<details>
+<summary>Item 6: Why and When to Avoid Removing Child Entities with CascadeType.Remove and orphanRemoval=true</summary>
+
+1. 참조되는 쪽을 삭제하는 경우 CascadeType.REMOVE 또는 orphanRemoval=true가 존재하면 참조하는 쪽에 자동적으로 전파한다는 점에서 동일
+1. CascadeType.REMOVE 여부 상관없이 orphanRemoval=true를 통해 관계를 끊으면 삭제문을 통해 연관 개체를 자동적으로 삭제하고 false인 경우는 수정문을 실행. 관계를 끊는 것을 삭제로 보지 않기 때문에 참조하는 개체없이 존재할 수 없는 개체를 삭제할 때 true가 유용
+1. CascadeType.REMOVE를 통해 부모 쪽을 삭제할 경우, Persistence Context에 연관 개체들이 존재해야 그렇지 않으면 영향을 받지 않음. 게다가, 부모 삭제문과 자식 삭제문이 개수만큼 실행되므로 성능 패널티 존재
+1. orphanRemoval=true를 통해 부모 쪽을 삭제하는 경우에도 동일한 쿼리를 수행
+1. 위와 같은 방식은 애플리케이션이 산발적인 삭제를 실행하는 경우나 특히, 관리되는 개체를 삭제할 때 개체 상태 전이를 위해 하이버네이트가 필요하므로 유용. 게다가, Automatic Optimistic Locking mechanism(e.g., @Version)으로부터 이점. 상충되지만, DML문을 줄여 삭제를 효율적으로 해야할 경우 고려해야 함
+1. 효율적으로 삭제하기 위해서는 Bulk operation을 사용해야하므로 Automatic Optimistic Locking mechanism을 사용할 수 없음. Persistence Context 동기화 문제는 flushAutomatically = true, clearAutomatically = true를 통해 관리
+1. 효율적으로 삭제할 수 있는 4가지 경우:
+    1. 하나의 부모가 Persistence Context에 있고 연관된 자식은 없을 때
+        ```
+        // ChildRepository.java
+        public int deleteByParentId(String parentId);
+        // ParentRepository.java
+        public int deleteById(String id);
+
+        Parent parent = parentRepository.findById(1L);
+        childRepository.deleteByParentId(parent.getId());
+        parentRepository.deleteById(parent.getId());
+        ```
+        연관된 자식들이 로드되지 않고 하나의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
+    1. 다수의 부모가 Persistence Context에 있고 연관된 자식은 없을 때
+        ```
+        // ChildRepository.java
+        @Query("DELETE FROM child c WHERE c.parent IN ?1")
+        public int deleteByParents(List<Parent> parents);
+
+        List<Parent> parents = parenRepository.findAll();
+        childRepository.deleteByParents(parents);
+        parentRepository.deleteAllInBatch(parents);
+        ```
+        > deleteInBatch(Iterable<T> entities) is deprecated. Use deleteAllInBatch()
+        연관된 자식들이 로드되지 않고 다수의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
+    1. 하나의 부모와 연관된 자식이 Persistence Context에 존재할 때
+        ```
+        Parent parent = parentRepository.findById(1L);
+        childRepository.deleteAllInBatch(parent.getChildern());
+        parentRepository.deleteAllInBatch(parent);
+        ```
+        > deleteAllInBatch(Iterable<T> entities)는 기본적으로 Persistence Context에 대해 flush/clear하지 않으므로 오래된 상태일 수 있음. flushAutomatically = true, clearAutomatically = true, flush() 등을 상황에 따라 추가
+        
+        하나의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
+    1. 부모와 자식이 Persistence Context에 없을 때
+        ```
+        childRepository.deleteByParentId(1L);
+        parentRepository.deleteById(1L);
+        ```
+        하나의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
+
+    > 모든 개체를 삭제하는 가장 효율적인 방법은 Bulk Operation을 실행하는 deleteAllInBatch()
+
+</details>
+
 
 ## Reference
 
