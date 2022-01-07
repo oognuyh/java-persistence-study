@@ -99,6 +99,7 @@
         parentRepository.deleteAllInBatch(parents);
         ```
         > deleteInBatch(Iterable<T> entities) is deprecated. Use deleteAllInBatch()
+
         연관된 자식들이 로드되지 않고 다수의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
     1. 하나의 부모와 연관된 자식이 Persistence Context에 존재할 때
         ```
@@ -107,7 +108,7 @@
         parentRepository.deleteAllInBatch(parent);
         ```
         > deleteAllInBatch(Iterable<T> entities)는 기본적으로 Persistence Context에 대해 flush/clear하지 않으므로 오래된 상태일 수 있음. flushAutomatically = true, clearAutomatically = true, flush() 등을 상황에 따라 추가
-        
+            
         하나의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
     1. 부모와 자식이 Persistence Context에 없을 때
         ```
@@ -115,7 +116,6 @@
         parentRepository.deleteById(1L);
         ```
         하나의 Parent 삭제문과 하나의 연관된 자식 개체 삭제문이 실행
-
     > 모든 개체를 삭제하는 가장 효율적인 방법은 Bulk Operation을 실행하는 deleteAllInBatch()
 
 </details>
