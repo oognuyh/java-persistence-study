@@ -120,6 +120,83 @@
 
 </details>
 
+<details>
+<summary>Item 7: How to Fetch Associations via JPA Entity</summary>
+
+1. Entity graphs는 지연 로딩 예외와 N + 1 문제를 해결하기 위해 JPA 2.1부터 등장. 단일 선택문으로 로드되어야 할 연관된 개체들을 상세화
+1. 동일 개체에 다중, 체인 형식, 서브 그래프로 복잡한 관계도 정의할 수 있음. 또한, 글로벌하고 재사용 가능
+1. FetchType semantics를 재정의하기 위해 두 개의 속성을 설정할 수 있음
+    1. Fetch graph
+        기본 타입으로 attributeNodes에 있는 속성들이 FetchType.EAGER이며, 나머지 속성은 FetchType.LAZY
+    1. Load graph
+        attributeNodes에 있는 속성들이 FetchType.EAGER이며, 나머지 속성은 명시되거나 기본값
+1. Fetch Join은 inner join, Entity Graph는 left outer join으로 데이터를 가져옴
+1. Entity graph는 @NamedEntityGraph과 같은 어노테이션, attributePaths(ad hoc entity graphs), EntityManager API에 의해 선언할 수 있음
+    1. @NamedEntityGraph
+        ```
+        @Entity
+        @NamedEntityGraph(
+            name = "parent-children-graph",
+            attributeNodes = {
+                @NamedAttributeNode("children")
+            }
+        )
+        public class Parent implements Serializable { 
+        ```
+        1. Overriding a Query Method or Query Builder Mechanism
+            ```
+            @Override
+            @EntityGraph(value = "parent-children-graph", type = EntityGraphType.FETCH)
+            List<Parent> findAll();
+
+            @EntityGraph(value = "parent-children-graph", type = EntityGraphType.FETCH)
+            List<Parent> findByAgeLessThenOrderByNameDesc(int age);
+            ```
+        1. Using Specification
+            ```
+            public class ParentSpecs {
+                public static Specification<Parent> isAgeGt45() {
+                    return (Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder builder) ->
+                        builder.greaterThan(root.get("age"), 45);
+                }
+            }
+
+            public interface ParentRepository extends JpaRepository<Parent, Long>, JpaSpecificationExecutor<Parent> {
+                @Override
+                @EntityGraph(value = "parent-children-graph", type = EntityGraphType.FETCH)
+                List<Parent> findAll(Specification spec);
+            }
+            ```
+        1. @Query and JPQL
+            ```
+            @EntityGraph(value = "parent-children-graph", type = EntityGraphType.FETCH)
+            @Query(value = "SELECT p FROM parent p WHERE 20 < p.age AND p.age < 40")
+            List<Parent> findByAgeBetween20And40();
+            ```
+            > 연관 관계의 소유 개체가 SELECT 목록에 존재해야 함
+    
+    1. EntityManager  
+        getEntitiyGraph(String entityGraphName)을 통해 entity graph를 불러와서 사용
+
+    1. Ad Hoc Entity Graph
+        ```
+        @Override
+        @EntityGraph(
+            attributePaths = { "children" }, 
+            type = EntityGraphType.FETCH
+        )
+        List<Child> findAll();
+        ```
+        @NamedEntityGraph와 마찬가지로 Query Builder mechanism, Specification, 그리고 JPQL 사용
+    
+    > Entity graphs를 포함해 다중 즉시 로딩을 통해 연관 관계를 가져오면 동시에 다중 Bag(순서가 없고 중복은 허용하는 컬렉션)을 가져올 수 없는 MultipleBagFetchException이 발생. List를 Set으로 바꾸면 해결은 할 수 있지만, 카테시안 곱이 발생해 중간 결과를 병합하는 과정이 거대해질 수 있기 때문에 최적화되지 않음. 한 번에 한 연관 관계를 가져오는 것이 가장 좋은 해결책[The best way to fix the Hibernate MultipleBagFetchException](https://vladmihalcea.com/hibernate-multiplebagfetchexception/). 또는, spring.jpa.properties.hibernate.default_batch_fetch_size=?를 통해 지정된 수만큼 in절에 부모 key를 사용하게 해주어 최소한의 성능 보장[MultipleBagFetchException](https://jojoldu.tistory.com/457)
+
+    > Native query를 entity graphs와 같이 사용하면 예외 발생
+
+    > 연관 관계를 같이 가져올 때 메모리 내에서 발생하는 페이징을 사용하면 성능 패널티 존재. 반면에, 오직 기본(@Basic) 속성이나 컬렉션이 아닌 연관 개체를 가져오면 LIMIT 또는 couterparts를 통해 데이터베이스에서 가져옴
+
+</details>
+
 
 ## Reference
 
