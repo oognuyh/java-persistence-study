@@ -188,12 +188,55 @@
         List<Child> findAll();
         ```
         @NamedEntityGraph와 마찬가지로 Query Builder mechanism, Specification, 그리고 JPQL 사용
-    
     > Entity graphs를 포함해 다중 즉시 로딩을 통해 연관 관계를 가져오면 동시에 다중 Bag(순서가 없고 중복은 허용하는 컬렉션)을 가져올 수 없는 MultipleBagFetchException이 발생. List를 Set으로 바꾸면 해결은 할 수 있지만, 카테시안 곱이 발생해 중간 결과를 병합하는 과정이 거대해질 수 있기 때문에 최적화되지 않음. 한 번에 한 연관 관계를 가져오는 것이 가장 좋은 해결책[The best way to fix the Hibernate MultipleBagFetchException](https://vladmihalcea.com/hibernate-multiplebagfetchexception/). 또는, spring.jpa.properties.hibernate.default_batch_fetch_size=?를 통해 지정된 수만큼 in절에 부모 key를 사용하게 해주어 최소한의 성능 보장[MultipleBagFetchException](https://jojoldu.tistory.com/457)
 
     > Native query를 entity graphs와 같이 사용하면 예외 발생
 
     > 연관 관계를 같이 가져올 때 메모리 내에서 발생하는 페이징을 사용하면 성능 패널티 존재. 반면에, 오직 기본(@Basic) 속성이나 컬렉션이 아닌 연관 개체를 가져오면 LIMIT 또는 couterparts를 통해 데이터베이스에서 가져옴
+
+</details>
+
+<details>
+<summary>Item 8: How to Fetch Associations via Entity SubGraphs</summary>
+
+1. Entity Graphs도 큰 트리 구조를 만들거나 필요없는 관계를 가져오는 등으로 성능 패널티가 발생하기 쉬움
+1. Sub-graphs는 주로 하위 개체도 다중으로 얽혀있는 복잡한 entity graphs를 만들도록 함
+1. @NameEntityGraph and @NamedSubgraph를 통한 정의
+    ```
+    @Entity
+    @NamedEntityGraph(
+        name = "parent-children-something-graph",
+        attributeNodes = {
+            @NamedAttributeNode(value = "children", subgraph = "something-subgraph")
+        },
+        subgraphs = {
+            @NamedSubgraph(
+                name = "something-subgraph",
+                attributeNodes = {
+                    @NamedAttributeNode("something")
+                }
+            )
+        }
+    )
+    public class Parent implements Serializable {
+    
+    public interface AuthorRepository extends JpaRepository<Parent, Long> {
+        @Override
+        @EntityGraph(value = "parent-children-something-graph", type = EntityGraphType.FETCH)
+        List<Parent> findAll();
+    ```
+    Query Builder Mechanism, Specification, and JPQL과도 함께 사용할 수 있음
+1. Ad Hoc Entity Graphs를 통한 정의
+    ```
+    @Override
+    @EntityGraph(
+        attributePaths = { "children.something" },
+        type = EntityGraphType.FETCH
+    )
+    List<Parent> findAll();
+    ```
+    Query Builder Mechanism, Specification, and JPQL과도 함께 사용할 수 있음
+1. EntityManager를 통한 정의
 
 </details>
 
