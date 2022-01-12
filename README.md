@@ -240,6 +240,38 @@
 
 </details>
 
+<details>
+<summary>Item 9: How to Handle Entity Graphs and Basic Attributes</summary>
+
+1. Entity Graph를 사용해 전체가 아닌 몇 가지 기본 속성들만 가져오는 것은 다음과 같은 작업이 필요
+    1. Hibernate Bytecode Enhancement 활성화
+    1. @Basic(fetch = FetchType.LAZY) 사용
+1. 해당 컬럼 타입이 큰 데이터를 저장하는 BLOB, CLOB 등과 같은 경우 성능을 향상시킬 수 있지만, 설정을 적용할 경우 다른 모든 쿼리에도 적용되기 때문에 주의
+1. 설정해도 Bytecode Enhancement를 활성화하지 않으면 즉시 로딩으로 가져오기 때문에 아래와 같은 추가 설정 필요
+    ```
+    buildscript {
+        ...
+
+        repositories {
+            mavenCentral()
+        }
+
+        dependencies {
+            ...
+            classpath "org.hibernate:hibernate-gradle-plugin:${hibernateVersion}"
+        }
+    }
+
+    apply plugin: 'org.hibernate.orm'
+
+    hibernate {
+        enhance {
+            enableLazyInitialization = true
+        }
+    }
+    ```
+
+</details>
 
 ## Reference
 
