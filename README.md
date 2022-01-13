@@ -273,6 +273,16 @@
 
 </details>
 
+<details>
+<summary>Item 10: How to Filter Associations via a HibernateSpecific @Where Annotation</summary>
+
+1. @Where을 사용하면 연관된 개체를 필터링해서 가져올 때 유용
+1. 개체를 가져오고 추가적인 조회문이 발생하기 때문에 JOIN FETCH WHERE 또는 @NamedEntityGraph 등이 아닌 연관된 개체까지 동시에 가져오지 않아도 되는 경우 사용
+1. 동시에 조회해야 하고 필터링도 필요하다면, JOIN FETCH WHERE을 사용하는 것이 좋음
+
+</details>
+
+
 ## Reference
 
 [Spring Boot Persistence Best Practices](https://link.springer.com/book/10.1007/978-1-4842-5626-8) by Anghel Leonard
