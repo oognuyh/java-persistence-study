@@ -282,6 +282,23 @@
 
 </details>
 
+<details>
+<summary>Item 11: How to Optimize Unidirectional/Bidirectional @OneToOne via @MapsId</summary>
+
+1. 일반적인 단방향 @OneToOne은 부모 개체가 연관된 자식 개체를 불러올 때 자식 개체의 id를 알지 못하기 때문에 아래와 같은 JPQL을 실행시켜야 함. 또한, 하위 개체의 id를 모르기 때문에 Second Level Cache에 개체들이 존재해도 데이터베이스에 JPQL 쿼리를 요청. 해결책으로 @NaturalId 또는 쿼리 캐시에 의존하는 방법이 있긴 함
+    ```
+    @Query("SELECT c FROM child c WHERE c.parent = ?1")
+    Child findByParent(Parent parent);
+    ```
+1. 일반적인 양방향 @OneToOne은 부모 개체만 조회하는 경우 지연 로딩임에도 불구하고 자식 개체를 조회하는 쿼리가 실행되어 조회문이 두 번 발생하는 성능 패너티 존재. 이는 부모 개체의 딜레마로 Hibernate가 자식 참조를 null이나 객체로 할당해야 하는지 모르기 때문. 해결 방법은 Bytecode Enhancement와 @LazyToOne(LazyToOneOption.NO_PROXY)를 부모 개체에 설정하는 방법이나 @OneTOOne과 @MapsId를 사용하는 방법이 있음
+1. @MapsId는 사용하면 하위 개체의 기본키가 부모 개체 기본키를 참조하는 외래키가 될 수 있으며, 다음과 같은 이점을 가질 수 있음
+    1. 단방향 @OneToOne과 달리 자식 개체가 Second Level Cache에 존재하면 추가적으로 데이터베이스에 요청하지 않아도 됨
+    1. 양방향 @OneToOne과 달리 부모 개체를 가져올 때 자식 개체를 가져오기 위한 불필요한 추가 쿼리를 자동적으로 실행하지 않음
+    1. 기본키를 공유하기 때문에 기본키와 외래키를 인덱싱할 필요가 없어 메모리 사용량을 줄임
+1. 하위 개체의 id는 Hibernate에 의해 설정되어 @GeneratedValue 등을 통해 설정할 필요 없음
+1. @MapsId는 @ManyToOne에도 적용될 수 있음
+</details>
+
 
 ## Reference
 
