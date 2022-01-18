@@ -299,6 +299,49 @@
 1. @MapsId는 @ManyToOne에도 적용될 수 있음
 </details>
 
+<details>
+<summary>Item 12: How to Validate that Only One Association Is Non-Null</summary>
+
+1. 한 개체가 많은 연관 개체를 가지고 있을 때, [Bean Validation](https://beanvalidation.org/2.0/)을 통해 application-level에서 하나의 연관 개체만 Null이 아니도록 하는 등 제약을 설정할 수 있음
+    ```
+    public class JustOneOfManyValidator implements ConstraintValidator<JustOneOfMany, Review> {
+        @Override
+        public boolean isValid(Review review, ConstraintValidatorContext ctx) {
+            return Stream.of(review.getBook(), review.getArticle(), review.getMagazine())
+                        .filter(Objects::nonNull)
+                        .count() == 1;
+        }
+    }
+
+    @Target({ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Constraint(validatedBy = {JustOneOfManyValidator.class})
+    public @interface JustOneOfMany {
+        String message() default "A review can be associated with either a book, a magazine or an article";
+        Class<?>[] groups() default {};
+        Class<? extends Payload>[] payload() default {};
+    }
+
+    @JustOneOfMany
+    public class Review implements Serializable { 
+    ```
+1. 또는, TRIGGER와 같은 네이티브 쿼리를 전달하여 제약을 설정할 수 있음
+    ```
+    CREATE TRIGGER Just_One_Of_Many
+        BEFORE INSERT ON review
+            FOR EACH ROW
+            BEGIN
+                IF (NEW.article_id IS NOT NULL AND NEW.magazine_id IS NOT NULL) OR
+                   (NEW.article_id IS NOT NULL AND NEW.book_id IS NOT NULL) OR
+                   (NEW.book_id IS NOT NULL AND NEW.magazine_id IS NOT NULL) THEN
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT='A review can be associated with either a book, a magazine or an article';
+                END IF;
+            END;
+    ```
+
+</details>
+
 
 ## Reference
 
