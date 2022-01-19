@@ -342,6 +342,46 @@
 
 </details>
 
+## 2. Entities
+
+<details>
+<summary>Item 13: How to Adopt a Fluent API Style in Entities</summary>
+
+1. Fluent Style은 주로 가독성과 codeflowing sensation을 생성하도록 설계됨
+1. Fluent Style은 Entity Setters 또는 추가적인 메서드를 통해 구현 가능
+    1. Entity Setters
+        ```
+        public Parent addChild(Child child) {
+            this.children.add(child);
+            child.setParent(this);
+            return this;
+        }
+
+        public Parent setName(String name) {
+            this.name = name;
+            return this;
+        }
+        ```
+        위와 같은 방식으로 void 대신 this를 반환하면서 구현할 수 있지만, Lombok을 사용하면 @Accessors(chain = true)를 통해 아래와 같이 더 쉽게 구현 가능
+        ```
+        @Accessors(chain = true)
+        public class Parent implements Serializable {
+        ```
+    1. Additional Methods
+        ```
+        public Parent id(Long id) {
+            this.id = id;
+            return this;
+        }
+        ```
+        위와 같은 방식으로 Setters 대신 해당 메서드를 통해 구현할 수 있지만, 마찬가지로 Lombok을 사용하면 @Accessors(chain = true, fluet = true)를 통해 아래와 같이 더 쉽게 구현 가능
+        ```
+        @Accessors(chain = true, fluent = true)
+        public Parent implments Serializable {
+        ```
+
+</details>
+
 
 ## Reference
 

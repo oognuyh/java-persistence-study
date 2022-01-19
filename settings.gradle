@@ -1,3 +1,4 @@
 rootProject.name = 'java-persistence-study'
 
 include 'chapter1:item1', 'chapter1:item2', 'item3', 'item4', 'item5', 'item6', 'item7', 'item8', 'item9', 'item10', 'item11', 'item12'
+include 'item13'
