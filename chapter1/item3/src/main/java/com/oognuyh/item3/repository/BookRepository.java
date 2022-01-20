@@ -16,6 +16,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Query("SELECT b FROM book b WHERE b.author.id = ?1")
     List<Book> findByAuthorId(Long authorId);
 
-    @Query("SELECT b FROM book b WHERE b.author.id = :id")
+    @Query("SELECT b FROM book b WHERE b.author.id = ?1")
     Page<Book> findByAuthorId(Long authorId, Pageable pageable);
 }

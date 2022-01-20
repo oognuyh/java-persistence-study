@@ -57,7 +57,7 @@ subprojects {
 	}
 }
 
-project(":item9") {
+project(":chapter1:item9") {
 	apply plugin: 'org.hibernate.orm'
 
 	hibernate {
