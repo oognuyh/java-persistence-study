@@ -1,0 +1,29 @@
+spring:
+  jpa:
+    defer-datasource-initialization: true
+    properties:
+      net.sf.ehcache.configurationResourceName: ehcache.xml
+      javax:
+        persistence:
+          sharedCache:
+            mode: ENABLE_SELECTIVE
+      hibernate:
+        generate_statistics: true
+        cache:
+          region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+          provider_class: org.hibernate.cache.EhCacheProvider
+          use_reference_entries: true
+          use_second_level_cache: true
+          use_query_cache: true
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql: TRACE
