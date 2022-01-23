@@ -54,7 +54,6 @@ public class Author implements Serializable {
 
         if (!cloneChildren) {
             // associate books
-            System.out.println(books);
             books.addAll(author.getBooks());
         } else {
             // clone each book

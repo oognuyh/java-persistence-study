@@ -13,7 +13,7 @@ class Item17ApplicationTests {
 	@Autowired private AuthorRepository authorRepository;
 
 	@Test
-	public void cloneAuthorWithoutBooks() {
+	public void cloneAuthorAndAssociaeBooks() {
 		Author author = authorRepository.findByName("Mark Janel");
 
 		Author clonedAuthor = new Author(author, false);
@@ -21,11 +21,11 @@ class Item17ApplicationTests {
 		clonedAuthor.setAge(54);
 		clonedAuthor.setName("Farell Tliop");
 
-		authorRepository.save(clonedAuthor).getBooks().forEach(book -> System.out.println(book.getAuthors()));
+		authorRepository.saveAndFlush(clonedAuthor);
 	}
 
 	@Test
-	public void cloneAuthorWithBooks() {
+	public void cloneAuthorAndBooks() {
 		Author author = authorRepository.findByName("Mark Janel");
 
 		Author clonedAuthor = new Author(author, true);
@@ -33,6 +33,6 @@ class Item17ApplicationTests {
 		clonedAuthor.setAge(54);
 		clonedAuthor.setName("Farell Tliop");
 
-		authorRepository.save(clonedAuthor);
+		authorRepository.saveAndFlush(clonedAuthor);
 	}
 }
