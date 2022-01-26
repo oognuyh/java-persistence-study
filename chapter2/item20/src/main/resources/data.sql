@@ -1,0 +1,1 @@
+insert into book (id, author, isbn, title) values (1L, 'Mark Janel', '011-LD', 'Lucky Day');
