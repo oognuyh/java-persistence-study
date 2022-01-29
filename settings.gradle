@@ -6,4 +6,4 @@ include ':chapter1:item7', ':chapter1:item8', ':chapter1:item9', ':chapter1:item
 include ':chapter2:item13', ':chapter2:item14', ':chapter2:item15', ':chapter2:item16', ':chapter2:item17', ':chapter2:item18'
 include ':chapter2:item19', ':chapter2:item20'
 
-include ':chapter3:item21'
+include ':chapter3:item21', ':chapter3:item22'
