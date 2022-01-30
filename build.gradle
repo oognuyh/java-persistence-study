@@ -82,3 +82,17 @@ project(":chapter2:item18") {
 		}
 	}
 }
+
+project(":chapter3:item23") {
+	apply plugin: 'org.hibernate.orm'
+
+	hibernate {
+		enhance {
+			enableLazyInitialization = true
+		}
+	}
+
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-web'
+	}
+}
